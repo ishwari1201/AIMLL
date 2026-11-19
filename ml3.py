@@ -1,0 +1,120 @@
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.model_selection import train_test_split
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.metrics import (
+    accuracy_score, confusion_matrix,
+    classification_report, precision_score,
+    recall_score, f1_score
+)
+
+# ==========================================
+# STEP 1: READ DATASET
+# ==========================================
+
+file = input("Enter Admission_Predict.csv file path: ").strip().strip('"')
+df = pd.read_csv(file)
+
+print("\nFirst 5 Records:")
+print(df.head())
+
+# ==========================================
+# STEP 2: DATA PREPROCESSING
+# ==========================================
+
+# Remove extra spaces from column names
+df.columns = df.columns.str.strip()
+
+# Remove duplicate records
+df = df.drop_duplicates()
+
+# Remove rows with missing values
+df = df.dropna()
+
+print("\nMissing Values:")
+print(df.isnull().sum())
+
+print("\nDataset Shape:")
+print(df.shape)
+
+# ==========================================
+# STEP 3: CONVERT OUTPUT INTO CLASSES
+# ==========================================
+
+df['Chance of Admit'] = (
+    df['Chance of Admit'] >= 0.8
+).astype(int)
+
+print("\nAdmission Classes:")
+print(df['Chance of Admit'].value_counts())
+
+# ==========================================
+# STEP 4: SELECT INPUT AND OUTPUT
+# ,  ==========================================
+
+X = df.drop(['Chance of Admit', 'Serial No.'], axis=1)
+y = df['Chance of Admit']
+
+# ==========================================
+# STEP 5: SPLIT DATASET
+# ==========================================
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.25, random_state=42, stratify=y
+)
+
+# ==========================================
+# STEP 6: CREATE AND TRAIN DECISION TREE
+# ==========================================
+
+dt = DecisionTreeClassifier(random_state=42)
+dt.fit(X_train, y_train)
+
+# Predict admission class
+y_pred = dt.predict(X_test)
+
+# ==========================================
+# STEP 7: EVALUATE MODEL
+# ==========================================
+
+print("\nDECISION TREE RESULTS")
+
+print("\nConfusion Matrix:")
+print(confusion_matrix(y_test, y_pred))
+
+print("\nAccuracy:")
+print(accuracy_score(y_test, y_pred))
+
+print("\nPrecision:")
+print(precision_score(y_test, y_pred, zero_division=0))
+
+print("\nRecall:")
+print(recall_score(y_test, y_pred, zero_division=0))
+
+print("\nF1 Score:")
+print(f1_score(y_test, y_pred, zero_division=0))
+
+print("\nClassification Report:")
+print(classification_report(y_test, y_pred, zero_division=0))
+
+# ==========================================
+# STEP 8: VISUALIZE DECISION TREE
+# ==========================================
+
+plt.figure(figsize=(18, 10))
+
+plot_tree(
+    dt,
+    feature_names=X.columns,  
+    class_names=['Low Chance', 'High Chance'],
+    filled=True,
+    rounded=True,
+    max_depth=3
+)
+
+plt.title("Decision Tree Classification")
+plt.show()
+
+print("\nAssignment Completed Successfully!")
